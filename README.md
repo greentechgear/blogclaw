@@ -2,7 +2,7 @@
 
 **A self-improving blog system that learns from your WordPress edits.**
 
-BlogClaw is part of the [OpenClaw](https://github.com/greentechgear) ecosystem, built on [NanoClaw](https://github.com/gavrielc/nanoclaw) — an AI agent orchestrator that runs Claude (or other LLMs) in isolated Docker containers with Telegram integration.
+BlogClaw is part of the [OpenClaw](https://github.com/openclaw/openclaw) ecosystem, built on [NanoClaw](https://github.com/gavrielc/nanoclaw) — an AI agent orchestrator that runs Claude (or other LLMs) in isolated Docker containers with Telegram integration.
 
 BlogClaw's components (scripts, templates, learning files) are plain Python and Markdown. They work as a NanoClaw plugin out of the box, but can be adapted to any AI agent framework that can run bash commands, read/write files, and follow instructions.
 
@@ -355,4 +355,4 @@ MIT — Fork it, break it, improve it. If you build something interesting on top
 
 - Built on [NanoClaw](https://github.com/gavrielc/nanoclaw) by Gavriel Cohen
 - Inspired by Caleb Denio's [Dog Game technique](https://www.calebleak.com/posts/dog-game/)
-- Part of the [OpenClaw](https://github.com/greentechgear) ecosystem
+- Part of the [OpenClaw](https://github.com/openclaw/openclaw) ecosystem
