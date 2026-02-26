@@ -11,10 +11,13 @@ BlogClaw watches you edit blog posts in WordPress and automatically learns your 
 ## How It Works
 
 1. **Fetch Revisions** - WordPress REST API provides full revision history
-2. **Analyze Changes** - HTMLStripper extracts plain text, word counts calculated
-3. **Categorize Patterns** - Content Expansion (100+ words), Structure Refinement (headers), Iterative Polish (<50 words)
-4. **Detect Patterns** - When 3+ posts show same pattern, log to PATTERN_ANALYSIS.md
-5. **Update Style Guide** - When 5+ posts show same pattern, codify as rule
+2. **Normalize & Strip** - Strips HTML, normalizes placeholders (`${VAR}`, `{{var}}`, `%VAR%`) so they don't pollute diffs
+3. **Content Diff Analysis** - Paragraph-level diff via SequenceMatcher extracts *what* was added/removed, not just word counts
+4. **Classify Content Blocks** - Each added block classified as: business context, example/case study, technical detail, edge case, personal anecdote, or general expansion
+5. **Categorize Patterns** - Content Expansion (100+ words), Structure Refinement (headers, reordering), Iterative Polish (<50 words)
+6. **Semantic Pattern Detection** - Explains *why* patterns matter with confidence scores and suggested actions
+7. **Detect Patterns** - When 3+ posts show same pattern, log to PATTERN_ANALYSIS.md
+8. **Update Style Guide** - When 5+ posts show same pattern, codify as rule
 
 ## Usage
 
@@ -84,8 +87,10 @@ WORDPRESS_PASSWORD=xxxx_xxxx_xxxx_xxxx
 Use this skill when:
 - "analyze my blog revisions"
 - "what patterns am I editing?"
+- "what kind of content am I adding?"
 - "run BlogClaw on [post]"
 - "check WordPress revisions for [site]"
+- "why does the AI keep missing [X] in drafts?"
 - "update my writing style guide"
 - Any request about learning from WordPress edits
 
@@ -97,6 +102,7 @@ Installed automatically by `install.sh`
 
 ## Version
 
+0.3.0 - Content diff analyzer, placeholder detection, semantic pattern matching
 0.2.0 - Added NanoClaw plugin structure with install.sh and SKILL.md
 
 ## More Info

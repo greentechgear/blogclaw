@@ -196,20 +196,20 @@ Except it was detecting "ngl" inside the word "single."
 
 **Fix:** Changed pattern matching from substring to word-boundary regex (`\bngl\b` instead of just `ngl`).
 
-But this reveals a broader issue: The system can detect patterns mechanically but can't evaluate *why* they matter. It needs human judgment to distinguish signal from noise.
+Similarly, template variables like `${WORDPRESS_URL}` and `{{site_name}}` were being flagged as content changes. The system now normalizes placeholders before comparison (v0.3.0), stripping `${VAR}`, `{{var}}`, and `%VAR%` patterns so they don't pollute diffs.
 
-### The Context Problem
+### The Context Problem (Solved in v0.3.0)
 
-The system learned "author adds 600+ words to AI drafts" but not *what kind* of words.
+The system *used to* learn "author adds 600+ words to AI drafts" but not *what kind* of words.
 
 I'm not padding. I'm adding:
 - Business value explanations ("Why this matters for the reader")
 - Real-world examples ("Here's how Company X uses this")
 - Edge cases and gotchas ("This breaks when Y happens")
 
-The AI can count words. It can't yet generate the *type* of content I'm adding.
+**v0.3.0 fix:** The content diff analyzer now extracts paragraph-level blocks using `SequenceMatcher` and classifies each one by content type: business context, example/case study, technical detail, edge case, personal anecdote, or general expansion. Instead of "author added 600 words," you get "author added 4 business context blocks and 2 example blocks."
 
-**Next iteration:** Build content diff analyzer that extracts *what* you're adding, not just *how much*. Learn the themes, not just the metrics.
+The semantic pattern engine then explains *why*: "AI drafts are missing the 'why this matters' framing" with a suggested action: "Add a business value section check to your reviewer."
 
 ## Installation
 
@@ -331,12 +331,15 @@ After one week of data:
 
 4. **The creepy threshold is real.** When AI gets too good at mimicking you, it raises identity questions nobody's equipped to answer.
 
-## Roadmap
+## What's New in v0.3.0
 
-**Short term (next month):**
-- Content diff analyzer (extract *what* you're adding, not just word counts)
-- Better placeholder detection (stop flagging `${VARIABLES}` as errors)
-- Semantic pattern matching (understand *why* patterns matter, not just frequency)
+**Content Diff Analyzer:** Extracts paragraph-level blocks using `SequenceMatcher` and classifies each by content type (business context, example/case study, technical detail, edge case, personal anecdote, general expansion). Shows *what* you're adding, not just word counts.
+
+**Placeholder Detection:** Normalizes `${VAR}`, `{{var}}`, and `%VAR%` template variables before comparison so they don't pollute diffs or get flagged as errors. Reports how many placeholders were found and excluded.
+
+**Semantic Pattern Matching:** Analyzes content block classifications across all revisions to explain *why* patterns matter. Each semantic pattern includes a `pattern_type`, `why_it_matters`, `suggested_action`, and `confidence` score. Goes beyond "3+ structure changes detected" to "Author prefers hook-first structure over linear logic."
+
+## Roadmap
 
 **Medium term (3-6 months):**
 - Multi-site learning (cross-pollinate patterns across blogs)
