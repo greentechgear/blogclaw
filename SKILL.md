@@ -32,16 +32,6 @@ python3 analyze_revisions.py --site yourdomain.com --post-title "Your Post Title
 python3 analyze_revisions.py --config posts.json --json
 ```
 
-## Learning Files
-
-BlogClaw generates these learning files in the `learning/` directory:
-
-- **DAILY_ACTIVITY_LOG.md** - Every post published, revisions, patterns
-- **PATTERN_ANALYSIS.md** - Recurring patterns (3+ occurrences)
-- **STYLE_GUIDE.md** - Codified rules (5+ occurrences)
-- **SKILL_IMPROVEMENTS.md** - Script enhancements and fixes
-- **CONTENT_LEARNINGS.md** - Site-specific voice patterns
-
 ## Automated Heartbeats
 
 Schedule with NanoClaw's task scheduler:
@@ -100,8 +90,80 @@ Use this skill when:
 
 Installed automatically by `install.sh`
 
+## Traffic Analysis (Clicky Analytics)
+
+BlogClaw also integrates with [Clicky](https://clicky.com) to analyze referral traffic
+patterns and generate engagement recommendations.
+
+### Analyze Traffic
+```bash
+python3 analyze_traffic.py --site brianchappell.com
+python3 analyze_traffic.py --site consultdex.com --days 7
+python3 analyze_traffic.py --all --json
+```
+
+### What It Does
+1. **Fetches referral traffic** — Categorizes sources (social, search, community, direct referrals)
+2. **Identifies trending articles** — Detects content gaining momentum with growth percentages
+3. **Analyzes search terms** — Shows which keywords drive organic traffic
+4. **Generates engagement recommendations** — Specific actions: where to comment, what to promote, which communities to engage in
+5. **Cross-site patterns** — Identifies shared referral sources across multiple sites
+
+### Traffic Heartbeat
+```python
+# Weekly (Sun 10 AM) - Full referral analysis
+schedule_task(
+    prompt="Run BlogClaw traffic analysis for all sites",
+    schedule_type="cron",
+    schedule_value="0 10 * * 0",
+    context_mode="group"
+)
+
+# Daily (10 PM) - Quick spike detection
+schedule_task(
+    prompt="Run BlogClaw daily traffic check for spikes",
+    schedule_type="cron",
+    schedule_value="0 22 * * *",
+    context_mode="group"
+)
+```
+
+### Traffic Configuration
+
+Add to `.env`:
+```bash
+CLICKY_SITE_ID_BRIANCHAPPELL=your_site_id
+CLICKY_SITEKEY_BRIANCHAPPELL=your_sitekey
+CLICKY_SITE_ID_CONSULTDEX=your_site_id
+CLICKY_SITEKEY_CONSULTDEX=your_sitekey
+```
+
+### Traffic Triggers
+
+Use this skill when:
+- "analyze my traffic"
+- "where is my referral traffic coming from?"
+- "what articles are trending?"
+- "where should I engage/comment?"
+- "run traffic analysis for [site]"
+- "what search terms are driving traffic?"
+- "compare traffic between my sites"
+- Any request about Clicky analytics or traffic patterns
+
+## Learning Files
+
+BlogClaw generates these learning files in the `learning/` directory:
+
+- **DAILY_ACTIVITY_LOG.md** - Every post published, revisions, patterns
+- **PATTERN_ANALYSIS.md** - Recurring patterns (3+ occurrences)
+- **STYLE_GUIDE.md** - Codified rules (5+ occurrences)
+- **SKILL_IMPROVEMENTS.md** - Script enhancements and fixes
+- **CONTENT_LEARNINGS.md** - Site-specific voice patterns
+- **TRAFFIC_ANALYSIS.md** - Referral traffic patterns and engagement recommendations
+
 ## Version
 
+0.5.0 - Clicky analytics integration, referral traffic analysis, engagement recommendations
 0.3.0 - Content diff analyzer, placeholder detection, semantic pattern matching
 0.2.0 - Added NanoClaw plugin structure with install.sh and SKILL.md
 

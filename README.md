@@ -447,6 +447,14 @@ After one week of data:
 
 4. **The creepy threshold is real.** When AI gets too good at mimicking you, it raises identity questions nobody's equipped to answer.
 
+## What's New in v0.5.0
+
+**Clicky Analytics Integration:** Pulls referral traffic data from [Clicky](https://clicky.com) to analyze where your readers come from, what content is trending, and where you should engage next. Supports multiple sites (e.g. brianchappell.com + consultdex.com) with cross-site pattern detection.
+
+**Engagement Recommendations:** Generates prioritized, actionable suggestions — amplify channels that are already working, explore untapped communities, promote trending articles, build relationships with sites linking to you.
+
+**Traffic Heartbeat:** Automated weekly/daily traffic analysis that appends to `TRAFFIC_ANALYSIS.md` in your learning directory, so the nanobot can reference traffic patterns when planning content.
+
 ## What's New in v0.3.0
 
 **Content Diff Analyzer:** Extracts paragraph-level blocks using `SequenceMatcher` and classifies each by content type (business context, example/case study, technical detail, edge case, personal anecdote, general expansion). Shows *what* you're adding, not just word counts.
@@ -460,6 +468,7 @@ After one week of data:
 **Medium term (3-6 months):**
 - Multi-site learning (cross-pollinate patterns across blogs)
 - Predictive revision suggestions ("Based on past patterns, you'll probably want to add a business value section here")
+- Correlate revision patterns with traffic performance (which editing improvements drive more traffic?)
 
 **Long term (aspirational):**
 - The system writes first drafts indistinguishable from your final output
