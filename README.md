@@ -243,15 +243,41 @@ WORDPRESS_USERNAME=admin
 WORDPRESS_PASSWORD=your-application-password
 ```
 
-4. **Add the heartbeats** to your group's CLAUDE.md — tell your AI agent to run these on a schedule:
+4. **Copy the heartbeat scripts** (automated schedulers):
 
-```
-Daily Review (11 PM): Analyze today's WordPress revisions, update DAILY_ACTIVITY_LOG.md
-Weekly Pattern Analysis (Sunday 9 AM): Review week's logs, identify 3+ patterns, update PATTERN_ANALYSIS.md
-Monthly Evolution (1st of month): Codify 5+ patterns into style guide, set next month's targets
+```bash
+cp -r /path/to/blogclaw/scripts groups/tg-your-blogging-group/.claude/skills/blogclaw/
 ```
 
-5. **Create your style guide** using `templates/STYLE_GUIDE_TEMPLATE.md` as a starting point. See `templates/EXAMPLE_STYLE_GUIDE.md` for a completed example.
+5. **Schedule the heartbeats** using NanoClaw's task scheduler. Add to your group's CLAUDE.md or schedule via the mcp__nanoclaw__schedule_task tool:
+
+```python
+# Daily Review (11 PM EST)
+schedule_task(
+    prompt="Run BlogClaw daily heartbeat: python3 /workspace/group/.claude/skills/blogclaw/scripts/heartbeat_daily.py yourdomain.com",
+    schedule_type="cron",
+    schedule_value="0 23 * * *",  # 11 PM
+    context_mode="group"
+)
+
+# Weekly Pattern Analysis (Sunday 9 AM EST)
+schedule_task(
+    prompt="Run BlogClaw weekly heartbeat: python3 /workspace/group/.claude/skills/blogclaw/scripts/heartbeat_weekly.py",
+    schedule_type="cron",
+    schedule_value="0 9 * * 0",  # Sunday 9 AM
+    context_mode="group"
+)
+
+# Monthly Evolution Check (1st of month 8 AM EST)
+schedule_task(
+    prompt="Run BlogClaw monthly heartbeat: python3 /workspace/group/.claude/skills/blogclaw/scripts/heartbeat_monthly.py",
+    schedule_type="cron",
+    schedule_value="0 8 1 * *",  # 1st day 8 AM
+    context_mode="group"
+)
+```
+
+6. **Create your style guide** using `templates/STYLE_GUIDE_TEMPLATE.md` as a starting point. See `templates/EXAMPLE_STYLE_GUIDE.md` for a completed example.
 
 ### Standalone Usage (Without NanoClaw)
 
@@ -293,6 +319,96 @@ Example `posts.json`:
 ```
 
 The learning files and style guides need to be maintained by an AI agent (or manually). The standalone analyzer gives you the raw data; the AI interprets it.
+
+## Heartbeat Schedulers
+
+BlogClaw includes three automated scripts that run on a schedule to analyze patterns and update learning files:
+
+### Daily Heartbeat (`scripts/heartbeat_daily.py`)
+
+**When:** 11 PM daily
+**What:** Analyzes all posts published today
+
+```bash
+python3 scripts/heartbeat_daily.py yourdomain.com --learning-dir learning
+```
+
+**Output:**
+- Fetches WordPress revisions for all posts published today
+- Analyzes content expansions, structure changes, iterative polish
+- Updates `DAILY_ACTIVITY_LOG.md` with findings
+- Reports total revisions and patterns detected
+
+**Example output:**
+```
+BlogClaw Daily Heartbeat - 2026-02-27
+Checking brianchappell.com for posts published today...
+
+Found 1 post(s) published today
+
+Analyzing revisions for: Self Improving Blog System
+  ✓ 19 revisions analyzed
+
+✓ Updated learning/DAILY_ACTIVITY_LOG.md
+
+✓ Daily heartbeat complete
+  Posts analyzed: 1
+  Total revisions: 19
+```
+
+### Weekly Heartbeat (`scripts/heartbeat_weekly.py`)
+
+**When:** Sunday 9 AM
+**What:** Detects recurring patterns from last 7 days
+
+```bash
+python3 scripts/heartbeat_weekly.py --learning-dir learning
+```
+
+**Pattern Detection Threshold:** 3+ occurrences
+
+**Output:**
+- Parses `DAILY_ACTIVITY_LOG.md` from last 7 days
+- Identifies recurring patterns (content expansions, structure changes, style violations, critical bugs)
+- Assigns confidence scores (0-100%)
+- Proposes specific fixes
+- Updates `PATTERN_ANALYSIS.md`
+- Auto-implements fixes with >90% confidence
+
+**Example patterns detected:**
+- Content Depth: AI drafts require +400 word expansions (5 occurrences) → Confidence: 95%
+- Em-Dash Usage: Appearing despite style guide (3 occurrences) → Confidence: 99%
+- Structure Refinement: 4-5 reorganizations per post (4 occurrences) → Confidence: 90%
+
+### Monthly Heartbeat (`scripts/heartbeat_monthly.py`)
+
+**When:** 1st of month, 8 AM
+**What:** Calculates quality metrics and codifies patterns into style guide
+
+```bash
+python3 scripts/heartbeat_monthly.py --learning-dir learning
+```
+
+**Codification Threshold:** 5+ occurrences
+
+**Output:**
+- Calculates metrics: avg revisions per post, avg content expansion, critical bugs, style violations
+- Extracts patterns from `PATTERN_ANALYSIS.md` with 5+ occurrences
+- Updates `STYLE_GUIDE.md` with codified rules
+- Generates monthly evolution report with next month's targets
+
+**Example metrics:**
+```
+Quality Metrics:
+  Posts analyzed: 3
+  Avg revisions: 17.7
+  Avg expansion: +418 words
+  Critical bugs: 1
+  Style violations: 2
+
+Patterns ready for codification (5+): 1
+  ✓ Content Depth (5 occurrences) → Added to style guide
+```
 
 ## Architecture
 
