@@ -126,18 +126,26 @@ def extract_items(api_response):
     """
     Extract items from Clicky API response.
 
-    Clicky wraps results in date containers:
-    [{"date": "2026-02-20", "items": [...]}]
+    Clicky wraps results in a type container with a 'dates' array:
+    [{"type": "pages", "dates": [{"date": "...", "items": [...]}]}]
 
     Returns:
-        list: Flattened list of all items across all dates
+        list: Flattened list of all items across all type containers and dates
     """
     all_items = []
-    for date_group in api_response:
-        if isinstance(date_group, dict) and 'items' in date_group:
-            items = date_group['items']
-            if isinstance(items, list):
-                all_items.extend(items)
+    for type_container in api_response:
+        if not isinstance(type_container, dict):
+            continue
+        # Navigate into 'dates' array
+        dates = type_container.get('dates', [])
+        for date_group in dates:
+            if isinstance(date_group, dict) and 'items' in date_group:
+                items = date_group['items']
+                if isinstance(items, list):
+                    # Skip empty/zero-only items ({"value":"0"} with no title)
+                    for item in items:
+                        if isinstance(item, dict) and item.get('title'):
+                            all_items.append(item)
     return all_items
 
 
@@ -145,12 +153,30 @@ def fetch_referral_traffic(site_id, sitekey, date='last-30-days', limit=100):
     """
     Fetch referral traffic sources from Clicky.
 
+    Uses 'links-domains' (referral domains) and 'traffic-sources' (source types).
+
     Returns:
         list of dicts with keys: title (domain), value (visits), value_percent
     """
     data = clicky_request(
         site_id, sitekey,
-        type_param='traffic-sources-list',
+        type_param='links-domains',
+        date=date,
+        limit=limit,
+    )
+    return extract_items(data)
+
+
+def fetch_traffic_sources(site_id, sitekey, date='last-30-days', limit=20):
+    """
+    Fetch high-level traffic source breakdown (search, social, direct, etc.)
+
+    Returns:
+        list of dicts with source type and visit counts
+    """
+    data = clicky_request(
+        site_id, sitekey,
+        type_param='traffic-sources',
         date=date,
         limit=limit,
     )
@@ -166,7 +192,7 @@ def fetch_top_pages(site_id, sitekey, date='last-30-days', limit=100):
     """
     data = clicky_request(
         site_id, sitekey,
-        type_param='pages-list',
+        type_param='pages',
         date=date,
         limit=limit,
     )
@@ -185,7 +211,7 @@ def fetch_referrers_by_page(site_id, sitekey, page_url, date='last-30-days'):
     """
     data = clicky_request(
         site_id, sitekey,
-        type_param='traffic-sources-list',
+        type_param='links-domains',
         date=date,
         limit=50,
         extra_params={'filter_url': page_url},
@@ -202,7 +228,7 @@ def fetch_search_terms(site_id, sitekey, date='last-30-days', limit=50):
     """
     data = clicky_request(
         site_id, sitekey,
-        type_param='searches-list',
+        type_param='searches',
         date=date,
         limit=limit,
     )
@@ -251,6 +277,7 @@ def analyze_referral_patterns(referrers):
         'facebook.com', 'www.facebook.com', 'm.facebook.com',
         'mastodon.social', 'threads.net',
         'bsky.app',
+        'chatgpt.com',
     }
 
     search_domains = {
@@ -366,11 +393,19 @@ def identify_trending_articles(pages, previous_pages=None):
     for page in previous_pages:
         prev_lookup[page.get('title', '')] = int(page.get('value', 0))
 
+    # Titles that indicate non-content pages to skip
+    skip_title_fragments = ('page not found', '404', 'error 404', 'not found')
+
     for page in pages:
         title = page.get('title', '')
         current_visits = int(page.get('value', 0))
+        url = page.get('url', '')
 
         if title in ('/', '') or '/category/' in title or '/tag/' in title:
+            continue
+
+        # Skip 404 / error pages
+        if any(frag in title.lower() for frag in skip_title_fragments):
             continue
 
         prev_visits = prev_lookup.get(title, 0)
@@ -399,6 +434,14 @@ def identify_trending_articles(pages, previous_pages=None):
             'growth_pct': growth_pct,
             'status': status,
         })
+
+    # Deduplicate by URL (keep highest visit count entry)
+    seen_urls = {}
+    for item in trending:
+        url = item['url']
+        if url not in seen_urls or item['current_visits'] > seen_urls[url]['current_visits']:
+            seen_urls[url] = item
+    trending = list(seen_urls.values())
 
     # Sort by growth percentage descending
     trending.sort(key=lambda x: -(x.get('growth_pct', 0)))
@@ -545,9 +588,10 @@ def run_analysis(domain, days=30, compare=True):
     print(f"Fetching traffic data for {domain} (last {days} days)...")
 
     # Fetch current period data
-    referrers = fetch_referral_traffic(site_id, sitekey, date=date_range)
-    pages = fetch_top_pages(site_id, sitekey, date=date_range)
-    search_terms = fetch_search_terms(site_id, sitekey, date=date_range)
+    referrers = fetch_referral_traffic(site_id, sitekey, date=date_range)        # links-domains
+    traffic_sources = fetch_traffic_sources(site_id, sitekey, date=date_range)   # traffic-sources
+    pages = fetch_top_pages(site_id, sitekey, date=date_range)                   # pages
+    search_terms = fetch_search_terms(site_id, sitekey, date=date_range)         # searches
 
     # Fetch previous period for comparison
     previous_pages = None
@@ -575,6 +619,10 @@ def run_analysis(domain, days=30, compare=True):
             'total_search_terms': len(search_terms),
             'trending_articles': len([t for t in trending if t.get('status') in ('surging', 'growing')]),
         },
+        'traffic_sources': [
+            {'source': t.get('title', ''), 'visits': int(t.get('value', 0))}
+            for t in traffic_sources
+        ],
         'referral_categories': {
             cat: sources for cat, sources in referral_categories.items() if sources
         },
