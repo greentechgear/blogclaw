@@ -373,7 +373,7 @@ python3 scripts/heartbeat_daily.py yourdomain.com --learning-dir learning
 **Example output:**
 ```
 BlogClaw Daily Heartbeat - 2026-02-27
-Checking brianchappell.com for posts published today...
+Checking yourblog.com for posts published today...
 
 Found 1 post(s) published today
 
@@ -480,7 +480,7 @@ After one week of data:
 
 ## What's New in v0.5.0
 
-**Clicky Analytics Integration:** Pulls referral traffic data from [Clicky](https://clicky.com) to analyze where your readers come from, what content is trending, and where you should engage next. Supports multiple sites (e.g. brianchappell.com + consultdex.com) with cross-site pattern detection.
+**Clicky Analytics Integration:** Pulls referral traffic data from [Clicky](https://clicky.com) to analyze where your readers come from, what content is trending, and where you should engage next. Supports multiple sites with cross-site pattern detection.
 
 **Engagement Recommendations:** Generates prioritized, actionable suggestions — amplify channels that are already working, explore untapped communities, promote trending articles, build relationships with sites linking to you.
 

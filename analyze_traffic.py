@@ -7,15 +7,13 @@ Part of the BlogClaw self-improving blog system.
 Built on the OpenClaw / NanoClaw ecosystem.
 
 Usage:
-    python3 analyze_traffic.py --site brianchappell.com
-    python3 analyze_traffic.py --site consultdex.com --days 30
+    python3 analyze_traffic.py --site yourblog.com
+    python3 analyze_traffic.py --site anotherblog.com --days 30
     python3 analyze_traffic.py --all --json
 
-Environment variables:
-    CLICKY_SITE_ID_BRIANCHAPPELL   - Clicky site ID for brianchappell.com
-    CLICKY_SITEKEY_BRIANCHAPPELL   - Clicky sitekey for brianchappell.com
-    CLICKY_SITE_ID_CONSULTDEX      - Clicky site ID for consultdex.com
-    CLICKY_SITEKEY_CONSULTDEX      - Clicky sitekey for consultdex.com
+Configuration:
+    Configure sites in sites.json and credentials in .env
+    See README.md for setup instructions
 
 Requirements:
     pip install requests
@@ -585,7 +583,7 @@ def run_analysis(domain, days=30, compare=True):
     Run a full traffic analysis for a site.
 
     Args:
-        domain: Site domain (e.g. 'brianchappell.com')
+        domain: Site domain (e.g. 'yourblog.com')
         days: Number of days to analyze
         compare: Whether to compare with previous period for trends
 
@@ -744,7 +742,7 @@ def main():
         description='BlogClaw Traffic Analyzer - Clicky analytics for referral patterns & engagement opportunities',
         epilog='Part of the BlogClaw self-improving blog system (OpenClaw / NanoClaw ecosystem)'
     )
-    parser.add_argument('--site', help='Site domain to analyze (e.g. brianchappell.com)')
+    parser.add_argument('--site', help='Site domain to analyze (e.g. yourblog.com)')
     parser.add_argument('--all', action='store_true', help='Analyze all configured sites')
     parser.add_argument('--days', type=int, default=30, help='Number of days to analyze (default: 30)')
     parser.add_argument('--no-compare', action='store_true', help='Skip trend comparison with previous period')
@@ -762,8 +760,8 @@ def main():
     else:
         parser.print_help()
         print("\nExamples:")
-        print("  python3 analyze_traffic.py --site brianchappell.com")
-        print("  python3 analyze_traffic.py --site consultdex.com --days 7")
+        print("  python3 analyze_traffic.py --site yourblog.com")
+        print("  python3 analyze_traffic.py --site anotherblog.com --days 7")
         print("  python3 analyze_traffic.py --all --json")
         sys.exit(1)
 

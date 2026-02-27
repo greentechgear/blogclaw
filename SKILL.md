@@ -97,8 +97,8 @@ patterns and generate engagement recommendations.
 
 ### Analyze Traffic
 ```bash
-python3 analyze_traffic.py --site brianchappell.com
-python3 analyze_traffic.py --site consultdex.com --days 7
+python3 analyze_traffic.py --site yourblog.com
+python3 analyze_traffic.py --site anotherblog.com --days 7
 python3 analyze_traffic.py --all --json
 ```
 
@@ -182,5 +182,5 @@ BlogClaw generates these learning files in the `learning/` directory:
 
 ## More Info
 
-Read the full story: https://brianchappell.com/self-improving-blog-system/
+Read the full story: https://github.com/greentechgear/blogclaw
 GitHub: https://github.com/greentechgear/blogclaw
