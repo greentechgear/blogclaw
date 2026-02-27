@@ -3,9 +3,6 @@
 BlogClaw - WordPress Revision Analyzer
 Analyzes revision history to learn from your editing patterns.
 
-Part of the BlogClaw self-improving blog system.
-Built on the OpenClaw / NanoClaw ecosystem.
-
 Usage:
     python3 analyze_revisions.py --site https://yoursite.com --post-id 123 --username admin
     python3 analyze_revisions.py --config posts.json
@@ -629,7 +626,7 @@ def print_analysis(analysis):
 def main():
     parser = argparse.ArgumentParser(
         description='BlogClaw - Analyze WordPress revision history to learn editing patterns',
-        epilog='Part of the BlogClaw self-improving blog system (OpenClaw / NanoClaw ecosystem)'
+        epilog='BlogClaw - Self-improving blog system for WordPress'
     )
     parser.add_argument('--site', help='WordPress site URL (or set WORDPRESS_URL env var)')
     parser.add_argument('--post-id', type=int, help='WordPress post ID to analyze')
