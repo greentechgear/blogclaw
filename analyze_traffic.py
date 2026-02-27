@@ -33,12 +33,26 @@ from collections import defaultdict
 # Clicky API base URL
 CLICKY_API_BASE = "https://api.clicky.com/api/stats/4"
 
-# Site configuration mapping
-# Maps domain names to env var prefixes for CLICKY_SITE_ID / CLICKY_SITEKEY
-SITE_CONFIG = {
-    'brianchappell.com': 'BRIANCHAPPELL',
-    'consultdex.com': 'CONSULTDEX',
-}
+def load_site_config():
+    """Load site configuration from sites.json"""
+    config_path = Path(__file__).parent / 'sites.json'
+    if not config_path.exists():
+        return {}
+
+    with open(config_path) as f:
+        config = json.load(f)
+
+    # Build domain -> env mapping
+    site_map = {}
+    for site in config.get('sites', []):
+        domain = site.get('domain')
+        # Extract env prefix from env var name (e.g. "CLICKY_SITE_ID_EXAMPLE" -> "EXAMPLE")
+        clicky_env = site.get('clicky_site_id_env', '')
+        if domain and clicky_env:
+            prefix = clicky_env.replace('CLICKY_SITE_ID_', '')
+            site_map[domain] = prefix
+
+    return site_map
 
 
 def load_env():
@@ -53,17 +67,21 @@ def load_env():
                     os.environ.setdefault(key.strip(), value.strip())
 
 
-def get_site_credentials(domain):
+def get_site_credentials(domain, site_config=None):
     """
     Get Clicky API credentials for a site.
 
     Args:
-        domain: Site domain (e.g. 'brianchappell.com')
+        domain: Site domain (e.g. 'example.com')
+        site_config: Optional site config dict (loaded from sites.json)
 
     Returns:
         tuple: (site_id, sitekey) or (None, None) if not configured
     """
-    prefix = SITE_CONFIG.get(domain)
+    if site_config is None:
+        site_config = load_site_config()
+
+    prefix = site_config.get(domain)
     if not prefix:
         # Try to construct from domain (replace dots/dashes with underscores, uppercase)
         prefix = domain.split('.')[0].upper().replace('-', '_')

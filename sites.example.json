@@ -1,0 +1,18 @@
+{
+  "sites": [
+    {
+      "domain": "example.com",
+      "name": "My Blog",
+      "wordpress_url": "https://example.com",
+      "clicky_site_id_env": "CLICKY_SITE_ID_EXAMPLE",
+      "clicky_sitekey_env": "CLICKY_SITEKEY_EXAMPLE"
+    },
+    {
+      "domain": "another-site.com",
+      "name": "Another Site",
+      "wordpress_url": "https://another-site.com",
+      "clicky_site_id_env": "CLICKY_SITE_ID_ANOTHER",
+      "clicky_sitekey_env": "CLICKY_SITEKEY_ANOTHER"
+    }
+  ]
+}

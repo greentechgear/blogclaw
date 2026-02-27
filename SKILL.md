@@ -130,12 +130,25 @@ schedule_task(
 
 ### Traffic Configuration
 
-Add to `.env`:
+1. Copy `sites.example.json` to `sites.json` and configure your sites:
+```json
+{
+  "sites": [
+    {
+      "domain": "yourblog.com",
+      "name": "Your Blog",
+      "wordpress_url": "https://yourblog.com",
+      "clicky_site_id_env": "CLICKY_SITE_ID_YOURBLOG",
+      "clicky_sitekey_env": "CLICKY_SITEKEY_YOURBLOG"
+    }
+  ]
+}
+```
+
+2. Add corresponding credentials to `.env`:
 ```bash
-CLICKY_SITE_ID_BRIANCHAPPELL=your_site_id
-CLICKY_SITEKEY_BRIANCHAPPELL=your_sitekey
-CLICKY_SITE_ID_CONSULTDEX=your_site_id
-CLICKY_SITEKEY_CONSULTDEX=your_sitekey
+CLICKY_SITE_ID_YOURBLOG=your_site_id
+CLICKY_SITEKEY_YOURBLOG=your_sitekey
 ```
 
 ### Traffic Triggers

@@ -235,12 +235,43 @@ cp -r /path/to/blogclaw/templates/* groups/tg-your-blogging-group/blogging/
 cp /path/to/blogclaw/analyze_revisions.py groups/tg-your-blogging-group/.claude/skills/
 ```
 
-3. **Set up environment variables** in your group's `.env`:
+3. **Configure your sites** by copying `sites.example.json` to `sites.json`:
 
 ```bash
+cp sites.example.json sites.json
+```
+
+Edit `sites.json` to add your blog(s):
+
+```json
+{
+  "sites": [
+    {
+      "domain": "yourblog.com",
+      "name": "Your Blog",
+      "wordpress_url": "https://yourblog.com",
+      "clicky_site_id_env": "CLICKY_SITE_ID_YOURBLOG",
+      "clicky_sitekey_env": "CLICKY_SITEKEY_YOURBLOG"
+    }
+  ]
+}
+```
+
+4. **Set up environment variables** in your group's `.env`:
+
+```bash
+# WordPress credentials (can use site-specific or default)
 WORDPRESS_URL=https://yoursite.com
 WORDPRESS_USERNAME=admin
 WORDPRESS_PASSWORD=your-application-password
+
+# Optional: Site-specific credentials
+# WORDPRESS_USERNAME_YOURBLOG=admin
+# WORDPRESS_PASSWORD_YOURBLOG=your-app-password
+
+# Optional: Clicky Analytics
+# CLICKY_SITE_ID_YOURBLOG=12345
+# CLICKY_SITEKEY_YOURBLOG=your-sitekey
 ```
 
 4. **Copy the heartbeat scripts** (automated schedulers):

@@ -6,6 +6,7 @@ Analyzes all posts published today and updates DAILY_ACTIVITY_LOG.md
 
 import os
 import sys
+import json
 import argparse
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -138,9 +139,25 @@ def update_daily_log(site_name, posts, analyses, log_path):
 
     print(f"✓ Updated {log_path}")
 
+def load_site_config(domain):
+    """Load site-specific configuration from sites.json"""
+    config_path = Path(__file__).parent.parent / 'sites.json'
+    if not config_path.exists():
+        return None
+
+    with open(config_path) as f:
+        config = json.load(f)
+
+    for site in config.get('sites', []):
+        if site.get('domain') == domain:
+            return site
+
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(description='BlogClaw Daily Heartbeat')
-    parser.add_argument('site', help='WordPress site domain (e.g., brianchappell.com)')
+    parser.add_argument('site', help='WordPress site domain (e.g., yourblog.com)')
     parser.add_argument('--learning-dir', default='learning', help='Learning files directory')
 
     args = parser.parse_args()
@@ -148,11 +165,17 @@ def main():
     # Load environment
     load_env()
 
-    # Determine credentials
-    if 'consultdex.com' in args.site:
-        username = 'slimhokie@gmail.com'
-        password = os.getenv('CONSULTDEX_PASSWORD')
+    # Load site configuration
+    site_config = load_site_config(args.site)
+
+    # Get credentials from environment (using site-specific or default vars)
+    if site_config:
+        # Try site-specific credentials first
+        domain_prefix = args.site.split('.')[0].upper().replace('-', '_')
+        username = os.getenv(f'WORDPRESS_USERNAME_{domain_prefix}') or os.getenv('WORDPRESS_USERNAME', 'admin')
+        password = os.getenv(f'WORDPRESS_PASSWORD_{domain_prefix}') or os.getenv('WORDPRESS_PASSWORD')
     else:
+        # Fall back to default credentials
         username = os.getenv('WORDPRESS_USERNAME', 'admin')
         password = os.getenv('WORDPRESS_PASSWORD')
 
@@ -161,7 +184,7 @@ def main():
         sys.exit(1)
 
     auth = (username, password)
-    site_url = f"https://{args.site}"
+    site_url = site_config.get('wordpress_url') if site_config else f"https://{args.site}"
 
     # Get today's date
     today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
