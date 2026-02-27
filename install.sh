@@ -1,18 +1,18 @@
 #!/bin/bash
-# BlogClaw Installer v0.2.0
+# BlogClaw NanoClaw Plugin Installer v0.2.0
 
 set -e
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "   BlogClaw v0.2.0 - Self-Improving Blog System"
-echo "   Installing..."
+echo "   Installing NanoClaw Plugin..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo
 
-# Check if we're in the right location
-if [ ! -f "analyze_revisions.py" ]; then
-    echo "❌ Error: analyze_revisions.py not found"
-    echo "Run this installer from the blogclaw directory"
+# Check if we're in a NanoClaw workspace
+if [ ! -d "/workspace/group" ]; then
+    echo "❌ Error: Not in a NanoClaw workspace"
+    echo "This plugin must be installed in /workspace/group/.claude/skills/"
     exit 1
 fi
 
@@ -72,8 +72,8 @@ echo "  1. Edit .env with your WordPress credentials"
 echo "  2. Test: python3 analyze_revisions.py --site yourdomain.com --help"
 echo "  3. Read README.md for full usage documentation"
 echo
-echo "To enable automated heartbeats, set up cron jobs or scheduled tasks:"
-echo "  - Daily: 11 PM - Run scripts/heartbeat_daily.py"
-echo "  - Weekly: 9 AM Sunday - Run scripts/heartbeat_weekly.py"
-echo "  - Monthly: 8 AM on 1st - Run scripts/heartbeat_monthly.py"
+echo "To enable automated heartbeats, add to your NanoClaw CLAUDE.md:"
+echo "  - Daily: Schedule task at 11 PM to run revision analysis"
+echo "  - Weekly: Schedule task at 9 AM Sunday for pattern detection"
+echo "  - Monthly: Schedule task at 8 AM on 1st for style guide updates"
 echo

@@ -3,6 +3,9 @@
 BlogClaw - Clicky Analytics Traffic Analyzer
 Analyzes referral traffic patterns and identifies engagement opportunities.
 
+Part of the BlogClaw self-improving blog system.
+Built on the OpenClaw / NanoClaw ecosystem.
+
 Usage:
     python3 analyze_traffic.py --site yourblog.com
     python3 analyze_traffic.py --site anotherblog.com --days 30
@@ -737,7 +740,7 @@ def print_analysis(analysis):
 def main():
     parser = argparse.ArgumentParser(
         description='BlogClaw Traffic Analyzer - Clicky analytics for referral patterns & engagement opportunities',
-        epilog='BlogClaw - Self-improving blog system for WordPress'
+        epilog='Part of the BlogClaw self-improving blog system (OpenClaw / NanoClaw ecosystem)'
     )
     parser.add_argument('--site', help='Site domain to analyze (e.g. yourblog.com)')
     parser.add_argument('--all', action='store_true', help='Analyze all configured sites')

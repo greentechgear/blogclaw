@@ -34,7 +34,7 @@ python3 analyze_revisions.py --config posts.json --json
 
 ## Automated Heartbeats
 
-Schedule with cron or your agent's task scheduler:
+Schedule with NanoClaw's task scheduler:
 
 ```python
 # Daily (11 PM) - Analyze today's posts
@@ -178,7 +178,7 @@ BlogClaw generates these learning files in the `learning/` directory:
 
 0.5.0 - Clicky analytics integration, referral traffic analysis, engagement recommendations
 0.3.0 - Content diff analyzer, placeholder detection, semantic pattern matching
-0.2.0 - Added plugin structure with install.sh and SKILL.md
+0.2.0 - Added NanoClaw plugin structure with install.sh and SKILL.md
 
 ## More Info
 

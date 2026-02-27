@@ -2,9 +2,9 @@
 
 **A self-improving blog system that learns from your WordPress edits.**
 
-BlogClaw is an AI-powered blog learning system that analyzes your WordPress revisions, detects writing patterns, and evolves your style guide over time.
+BlogClaw is part of the [OpenClaw](https://github.com/openclaw/openclaw) ecosystem, built on [NanoClaw](https://github.com/gavrielc/nanoclaw) — an AI agent orchestrator that runs Claude (or other LLMs) in isolated Docker containers with Telegram integration.
 
-BlogClaw's components (scripts, templates, learning files) are plain Python and Markdown. They can be integrated with any AI agent framework that can run bash commands, read/write files, and follow instructions.
+BlogClaw's components (scripts, templates, learning files) are plain Python and Markdown. They work as a NanoClaw plugin out of the box, but can be adapted to any AI agent framework that can run bash commands, read/write files, and follow instructions.
 
 ---
 
@@ -215,17 +215,18 @@ The semantic pattern engine then explains *why*: "AI drafts are missing the 'why
 
 ### Prerequisites
 
-- An AI agent framework with file system access and command execution
+- [NanoClaw](https://github.com/gavrielc/nanoclaw) installed and running
 - A WordPress site with REST API enabled
 - WordPress application password ([how to create one](https://make.wordpress.org/core/2020/11/05/application-passwords-integration-guide/))
 - Python 3.9+
 
-### Setup
+### Setup (NanoClaw Plugin)
 
-1. **Copy the learning file templates** to your blogging workspace:
+1. **Copy the learning file templates** into your NanoClaw blogging group folder:
 
 ```bash
-cp -r /path/to/blogclaw/templates/* /your/blogging/workspace/
+# From your nanoclaw root
+cp -r /path/to/blogclaw/templates/* groups/tg-your-blogging-group/blogging/
 ```
 
 2. **Copy the revision analyzer** into your group's skills:
@@ -279,22 +280,37 @@ WORDPRESS_PASSWORD=your-application-password
 cp -r /path/to/blogclaw/scripts groups/tg-your-blogging-group/.claude/skills/blogclaw/
 ```
 
-5. **Schedule the heartbeats** using your agent's task scheduler or cron jobs:
+5. **Schedule the heartbeats** using NanoClaw's task scheduler. Add to your group's CLAUDE.md or schedule via the mcp__nanoclaw__schedule_task tool:
 
-```bash
-# Daily Review (11 PM local time)
-0 23 * * * python3 /path/to/blogclaw/scripts/heartbeat_daily.py yourdomain.com
+```python
+# Daily Review (11 PM EST)
+schedule_task(
+    prompt="Run BlogClaw daily heartbeat: python3 /workspace/group/.claude/skills/blogclaw/scripts/heartbeat_daily.py yourdomain.com",
+    schedule_type="cron",
+    schedule_value="0 23 * * *",  # 11 PM
+    context_mode="group"
+)
 
-# Weekly Pattern Analysis (Sunday 9 AM)
-0 9 * * 0 python3 /path/to/blogclaw/scripts/heartbeat_weekly.py
+# Weekly Pattern Analysis (Sunday 9 AM EST)
+schedule_task(
+    prompt="Run BlogClaw weekly heartbeat: python3 /workspace/group/.claude/skills/blogclaw/scripts/heartbeat_weekly.py",
+    schedule_type="cron",
+    schedule_value="0 9 * * 0",  # Sunday 9 AM
+    context_mode="group"
+)
 
-# Monthly Evolution Check (1st of month 8 AM)
-0 8 1 * * python3 /path/to/blogclaw/scripts/heartbeat_monthly.py
+# Monthly Evolution Check (1st of month 8 AM EST)
+schedule_task(
+    prompt="Run BlogClaw monthly heartbeat: python3 /workspace/group/.claude/skills/blogclaw/scripts/heartbeat_monthly.py",
+    schedule_type="cron",
+    schedule_value="0 8 1 * *",  # 1st day 8 AM
+    context_mode="group"
+)
 ```
 
 6. **Create your style guide** using `templates/STYLE_GUIDE_TEMPLATE.md` as a starting point. See `templates/EXAMPLE_STYLE_GUIDE.md` for a completed example.
 
-### Standalone CLI Usage
+### Standalone Usage (Without NanoClaw)
 
 The revision analyzer works as a standalone CLI tool:
 
@@ -433,14 +449,14 @@ BlogClaw (this repo)
   100% LLM-agnostic (Python + Markdown)
          |
          v
-Your AI Agent Framework
-  Scheduling, task execution, file access
-  LLM-agnostic orchestration
+NanoClaw (orchestrator)
+  Scheduling, Telegram, Docker, IPC
+  Also LLM-agnostic
          |
          v
-LLM Provider
-  Claude, GPT-4, or any other model
-  Swap provider as needed
+Agent Runner (inside container)
+  Currently uses Claude Agent SDK
+  Swap this one layer to change LLMs
 ```
 
 BlogClaw never touches the LLM directly. It ships:
@@ -496,5 +512,6 @@ MIT — Fork it, break it, improve it. If you build something interesting on top
 
 ## Credits
 
+- Built on [NanoClaw](https://github.com/gavrielc/nanoclaw) by Gavriel Cohen
 - Inspired by Caleb Denio's [Dog Game technique](https://www.calebleak.com/posts/dog-game/)
-- WordPress REST API for revision history access
+- Part of the [OpenClaw](https://github.com/openclaw/openclaw) ecosystem
