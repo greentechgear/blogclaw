@@ -32,17 +32,18 @@ The system:
 
 ### The Learning Files
 
-The system maintains five interconnected learning files (templates included in `templates/`):
+The system maintains six interconnected learning files (templates included in `templates/`):
 
 - **DAILY_ACTIVITY_LOG.md** — Every edit, publish, and reviewer run logged daily
 - **PATTERN_ANALYSIS.md** — Weekly analysis of recurring issues (3+ occurrences = pattern)
 - **SKILL_IMPROVEMENTS.md** — Documents all enhancements to scripts and reviewers
 - **CONTENT_LEARNINGS.md** — Your blog voice patterns (one per site)
 - **STYLE_GUIDE.md** — Your comprehensive writing style reference
+- **UNPUBLISHED_DRAFTS_ANALYSIS.md** — Patterns in drafts you chose NOT to publish (bi-weekly)
 
 ### The Heartbeats
 
-Three automated scheduled tasks run the learning loops:
+Four automated scheduled tasks run the learning loops:
 
 **Daily Review (11 PM):**
 - Fetches all WordPress revisions for posts published today
@@ -60,6 +61,12 @@ Three automated scheduled tasks run the learning loops:
 - Measures quality metrics month-over-month
 - Updates style guide with codified patterns (5+ occurrences)
 - Sets next month's improvement targets
+
+**Bi-Weekly Unpublished Draft Analysis (1st and 15th at 9 AM):**
+- Analyzes drafts older than 7 days that haven't been published
+- Identifies common patterns in rejected drafts (lacking data, weak structure, style violations)
+- Learning from what you chose NOT to publish is as valuable as learning from edits
+- Updates UNPUBLISHED_DRAFTS_ANALYSIS.md with findings and recommendations
 
 ### The Revision Analyzer
 

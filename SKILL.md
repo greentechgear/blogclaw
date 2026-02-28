@@ -163,6 +163,43 @@ Use this skill when:
 - "compare traffic between my sites"
 - Any request about Clicky analytics or traffic patterns
 
+## Unpublished Draft Analysis
+
+BlogClaw can analyze drafts you haven't published to identify patterns in what you choose NOT to ship.
+
+### Analyze Unpublished Drafts
+```bash
+python3 scripts/analyze_unpublished.py --age-threshold 7
+python3 scripts/analyze_unpublished.py --drafts-dir /path/to/drafts --learning-dir /path/to/learning
+```
+
+### What It Detects
+1. **Content issues** - Lacking data, personal voice, specific examples
+2. **Style violations** - Em-dashes, hedging language, weak structure
+3. **Length problems** - Too short (<800 words), too long (>4000 words)
+4. **Structural weaknesses** - Insufficient sections, poor hierarchy
+5. **Pattern recognition** - Common characteristics across unpublished drafts
+
+### Unpublished Draft Heartbeat
+```python
+# Bi-weekly (1st and 15th at 9 AM) - Analyze drafts not published after 7 days
+schedule_task(
+    prompt="Run BlogClaw unpublished draft analysis to identify patterns in drafts Brian chose not to publish",
+    schedule_type="cron",
+    schedule_value="0 9 1,15 * *",
+    context_mode="group"
+)
+```
+
+### Unpublished Analysis Triggers
+
+Use this analysis when:
+- "why didn't I publish that draft?"
+- "analyze my unpublished drafts"
+- "what patterns are in drafts I rejected?"
+- "learn from drafts I didn't ship"
+- Any request about understanding draft rejection patterns
+
 ## Learning Files
 
 BlogClaw generates these learning files in the `learning/` directory:
@@ -173,9 +210,11 @@ BlogClaw generates these learning files in the `learning/` directory:
 - **SKILL_IMPROVEMENTS.md** - Script enhancements and fixes
 - **CONTENT_LEARNINGS.md** - Site-specific voice patterns
 - **TRAFFIC_ANALYSIS.md** - Referral traffic patterns and engagement recommendations
+- **UNPUBLISHED_DRAFTS_ANALYSIS.md** - Patterns in drafts not published after 7+ days
 
 ## Version
 
+0.6.0 - Unpublished draft analysis, learning from rejection patterns
 0.5.0 - Clicky analytics integration, referral traffic analysis, engagement recommendations
 0.3.0 - Content diff analyzer, placeholder detection, semantic pattern matching
 0.2.0 - Added NanoClaw plugin structure with install.sh and SKILL.md
