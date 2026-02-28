@@ -167,7 +167,7 @@ Use this skill when:
 
 BlogClaw can analyze drafts you haven't published to identify patterns in what you choose NOT to ship.
 
-### Analyze Unpublished Drafts
+### Analyze Unpublished Drafts (Basic - Bi-weekly)
 ```bash
 python3 scripts/analyze_unpublished.py --age-threshold 7
 python3 scripts/analyze_unpublished.py --drafts-dir /path/to/drafts --learning-dir /path/to/learning
@@ -180,13 +180,35 @@ python3 scripts/analyze_unpublished.py --drafts-dir /path/to/drafts --learning-d
 4. **Structural weaknesses** - Insufficient sections, poor hierarchy
 5. **Pattern recognition** - Common characteristics across unpublished drafts
 
-### Unpublished Draft Heartbeat
+### Lexical Analysis (Monthly - Word Frequency)
+```bash
+python3 scripts/analyze_unpublished_lexical.py --age-threshold 7
+```
+
+Compares word frequency between unpublished drafts and published articles:
+- **Rejection markers** - Words appearing MORE in rejected drafts
+- **Success markers** - Words appearing MORE in published articles
+- Requires 5,000+ words in unpublished corpus for statistical significance
+- Normalizes frequencies per 1,000 words for fair comparison
+- Minimum 3 occurrences per word to avoid noise
+
+**Why monthly, not bi-weekly?** A single 2,000-word article lacks statistical relevance. Monthly runs accumulate sufficient data (5,000+ words) for meaningful lexical patterns.
+
+### Scheduled Heartbeats
 ```python
-# Bi-weekly (1st and 15th at 9 AM) - Analyze drafts not published after 7 days
+# Bi-weekly (1st and 15th at 9 AM) - Basic structural analysis
 schedule_task(
     prompt="Run BlogClaw unpublished draft analysis to identify patterns in drafts Brian chose not to publish",
     schedule_type="cron",
     schedule_value="0 9 1,15 * *",
+    context_mode="group"
+)
+
+# Monthly (1st at 10 AM) - Lexical/word frequency analysis
+schedule_task(
+    prompt="Run BlogClaw lexical analysis comparing word frequencies in unpublished vs published content",
+    schedule_type="cron",
+    schedule_value="0 10 1 * *",
     context_mode="group"
 )
 ```
@@ -210,7 +232,8 @@ BlogClaw generates these learning files in the `learning/` directory:
 - **SKILL_IMPROVEMENTS.md** - Script enhancements and fixes
 - **CONTENT_LEARNINGS.md** - Site-specific voice patterns
 - **TRAFFIC_ANALYSIS.md** - Referral traffic patterns and engagement recommendations
-- **UNPUBLISHED_DRAFTS_ANALYSIS.md** - Patterns in drafts not published after 7+ days
+- **UNPUBLISHED_DRAFTS_ANALYSIS.md** - Patterns in drafts not published after 7+ days (bi-weekly)
+- **UNPUBLISHED_LEXICAL_ANALYSIS.md** - Word frequency comparison of unpublished vs published (monthly)
 
 ## Version
 

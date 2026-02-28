@@ -32,18 +32,19 @@ The system:
 
 ### The Learning Files
 
-The system maintains six interconnected learning files (templates included in `templates/`):
+The system maintains seven interconnected learning files (templates included in `templates/`):
 
 - **DAILY_ACTIVITY_LOG.md** — Every edit, publish, and reviewer run logged daily
 - **PATTERN_ANALYSIS.md** — Weekly analysis of recurring issues (3+ occurrences = pattern)
 - **SKILL_IMPROVEMENTS.md** — Documents all enhancements to scripts and reviewers
 - **CONTENT_LEARNINGS.md** — Your blog voice patterns (one per site)
 - **STYLE_GUIDE.md** — Your comprehensive writing style reference
-- **UNPUBLISHED_DRAFTS_ANALYSIS.md** — Patterns in drafts you chose NOT to publish (bi-weekly)
+- **UNPUBLISHED_DRAFTS_ANALYSIS.md** — Structural patterns in rejected drafts (bi-weekly)
+- **UNPUBLISHED_LEXICAL_ANALYSIS.md** — Word frequency: rejected vs published (monthly)
 
 ### The Heartbeats
 
-Four automated scheduled tasks run the learning loops:
+Five automated scheduled tasks run the learning loops:
 
 **Daily Review (11 PM):**
 - Fetches all WordPress revisions for posts published today
@@ -64,9 +65,17 @@ Four automated scheduled tasks run the learning loops:
 
 **Bi-Weekly Unpublished Draft Analysis (1st and 15th at 9 AM):**
 - Analyzes drafts older than 7 days that haven't been published
-- Identifies common patterns in rejected drafts (lacking data, weak structure, style violations)
+- Identifies common structural patterns in rejected drafts (lacking data, weak structure, style violations)
 - Learning from what you chose NOT to publish is as valuable as learning from edits
 - Updates UNPUBLISHED_DRAFTS_ANALYSIS.md with findings and recommendations
+
+**Monthly Lexical Analysis (1st at 10 AM):**
+- Compares word frequency between unpublished drafts and published articles
+- Identifies "rejection markers" (words appearing MORE in rejected drafts)
+- Identifies "success markers" (words appearing MORE in published articles)
+- Requires 5,000+ words in unpublished corpus for statistical significance
+- Single 2,000-word draft lacks relevance; monthly accumulation ensures meaningful patterns
+- Updates UNPUBLISHED_LEXICAL_ANALYSIS.md with frequency tables and recommendations
 
 ### The Revision Analyzer
 
