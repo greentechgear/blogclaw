@@ -112,7 +112,7 @@ def detect_recurring_patterns(patterns, threshold=3):
             'frequency': patterns['em_dashes'],
             'severity': 'medium',
             'description': "Em-dashes appearing despite style guide prohibition",
-            'proposed_fix': "Add em-dash detection to expert-reviewer and consultdex-reviewer pre-publish checks",
+            'proposed_fix': "Add em-dash detection to content reviewer pre-publish checks",
             'confidence': 0.99
         })
 

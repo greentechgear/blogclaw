@@ -2,3 +2,5 @@
 *.pyc
 __pycache__/
 posts.json
+learning/
+traffic_*.json
