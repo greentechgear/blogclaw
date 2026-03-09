@@ -325,6 +325,7 @@ def analyze_post_revisions(base_url, post_id, post_title, auth):
     revisions = response.json()
 
     analysis = {
+        'post_id': post_id,
         'post_title': post_title,
         'site': base_url,
         'total_revisions': len(revisions),

@@ -4,11 +4,13 @@ BlogClaw: Fill Daily Note
 Populates /workspace/group/blogging/Daily/YYYY-MM-DD.md with real activity data.
 
 Sources used:
-  - WordPress API (brianchappell.com + consultdex.com) — posts published today
+  - WordPress API (configured sites) — posts published today
   - DAILY_ACTIVITY_LOG.md — revision analysis for today
   - conversations/ — session summaries for today
   - CodeLog (global knowledge vault) — code written today
   - message-bus.json — cross-channel activity today
+
+CUSTOMIZE: Edit WP_SITES list below with your WordPress sites and credentials.
 
 Run: python3 fill_daily_note.py [--date YYYY-MM-DD] [--learning-dir /path]
 Called by the 11 PM BlogClaw heartbeat task.
@@ -31,19 +33,15 @@ VAULT_ROOT    = Path("/root/nanoclaw/groups/tg-nanobot-research-1003715687564/kn
 CODELOG_DIR   = VAULT_ROOT / "Knowledge" / "CodeLog"
 MESSAGE_BUS   = Path("/root/nanoclaw/groups/global/channels/message-bus.json")
 
+# CUSTOMIZE THIS: Add your WordPress sites here
 WP_SITES = [
     {
-        "name":    "brianchappell.com",
-        "api":     "https://brianchappell.com/wp-json/wp/v2",
+        "name":    "example.com",
+        "api":     "https://example.com/wp-json/wp/v2",
         "env_user":"WORDPRESS_USER",
         "env_pass":"WORDPRESS_PASSWORD",
     },
-    {
-        "name":    "consultdex.com",
-        "api":     "https://consultdex.com/wp-json/wp/v2",
-        "env_user":"CONSULTDEX_USER",
-        "env_pass":"CONSULTDEX_PASSWORD",
-    },
+    # Add more sites as needed
 ]
 
 
@@ -58,9 +56,9 @@ def load_env(group_dir: Path) -> dict:
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k.strip()] = v.strip().strip('"').strip("'")
-    # Also pull live env
-    for k in ["WORDPRESS_USER", "WORDPRESS_PASSWORD", "CONSULTDEX_USER", "CONSULTDEX_PASSWORD"]:
-        if k in os.environ:
+    # Also pull live env (add your own env var names as needed)
+    for k in os.environ:
+        if k.startswith("WORDPRESS_") or k.endswith("_USER") or k.endswith("_PASSWORD"):
             env[k] = os.environ[k]
     return env
 
@@ -134,31 +132,45 @@ def read_conversations_today(group_dir: Path, date_str: str) -> list[str]:
 def read_codelog_today(date_str: str) -> list[dict]:
     """Read today's CodeLog entries."""
     log_file = CODELOG_DIR / f"{date_str}.md"
-    if not log_file.is_file():
+    try:
+        if not log_file.is_file():
+            return []
+    except PermissionError:
+        # Can't access CodeLog directory (different group permissions)
         return []
-    entries = []
-    current = {}
-    for line in log_file.read_text().splitlines():
-        m = re.match(r"^## \[(\w+)\] `(.+?)` — (.+)", line)
-        if m:
-            if current:
-                entries.append(current)
-            current = {"action": m.group(1), "file": m.group(2), "channel": m.group(3)}
-        elif line.startswith("- **Description:**") and current:
-            current["desc"] = line.replace("- **Description:**", "").strip()
-    if current:
-        entries.append(current)
-    return entries
+
+    try:
+        entries = []
+        current = {}
+        for line in log_file.read_text().splitlines():
+            m = re.match(r"^## \[(\w+)\] `(.+?)` — (.+)", line)
+            if m:
+                if current:
+                    entries.append(current)
+                current = {"action": m.group(1), "file": m.group(2), "channel": m.group(3)}
+            elif line.startswith("- **Description:**") and current:
+                current["desc"] = line.replace("- **Description:**", "").strip()
+        if current:
+            entries.append(current)
+        return entries
+    except (PermissionError, OSError):
+        return []
 
 
 def read_bus_activity(date_str: str) -> list[str]:
     """Grab cross-channel messages from today."""
-    if not MESSAGE_BUS.is_file():
+    try:
+        if not MESSAGE_BUS.is_file():
+            return []
+    except PermissionError:
+        # Can't access message bus (different group permissions)
         return []
+
     try:
         bus = json.loads(MESSAGE_BUS.read_text())
-    except Exception:
+    except (PermissionError, OSError, Exception):
         return []
+
     items = []
     for msg in bus.get("messages", []):
         ts = msg.get("timestamp", "")
@@ -220,8 +232,8 @@ def fill_template(
     conv_block = bullet(conversations) if conversations else "- No sessions logged today"
 
     # ── Metrics ─────────────────────────────────────────────────────────────
-    bc_count   = len([i for items in published.values() for i in items if "brianchappell" in i.get("url","") or "brianchappell" in str(i)])
-    cdex_count = len([i for items in published.values() for i in items if "consultdex" in i.get("url","") or "consultdex" in str(i)])
+    # Calculate per-site counts (customize site names as needed)
+    site_counts = {site_name: len(items) for site_name, items in published.items()}
 
     next_date = (datetime.strptime(date_str, "%Y-%m-%d") + timedelta(days=1)).strftime("%B %d, %Y")
 
@@ -277,8 +289,7 @@ def fill_template(
 ## Metrics
 
 **Content Created:** {total_posts} post(s)
-**brianchappell.com published:** {len(published.get('brianchappell.com', []))}
-**consultdex.com published:** {len(published.get('consultdex.com', []))}
+{chr(10).join([f"**{site} published:** {count}" for site, count in site_counts.items()])}
 **Code files touched:** {len(code_entries)}
 **Cross-channel messages:** {len(bus_activity)}
 **Voice Quality:** (to be assessed)

@@ -68,7 +68,7 @@ Five automated scheduled tasks run the learning loops:
 - **Goes beyond word count** to detect topic and content patterns
 - Identifies future speculation vs retrospective analysis
 - Detects missing personal narrative (first-person density)
-- Flags setup guides that belong on different sites
+- Flags setup guides that might belong on different sites
 - Finds duplicate topics to avoid redundant drafting
 - **Key insight detected:** "Brian publishes retrospective analysis of things he's done, rejects prospective speculation about things that might happen"
 - Updates UNPUBLISHED_DRAFTS_ANALYSIS.md with findings and recommendations

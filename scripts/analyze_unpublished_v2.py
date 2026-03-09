@@ -141,7 +141,7 @@ def analyze_draft_enhanced(draft_path, all_titles):
     if retro_score < 2:
         issues.append("lacks retrospective")
     if setup_score >= 2:
-        issues.append("setup guide (consider Consultdex)")
+        issues.append("setup guide (wrong site/audience)")
     if promo_score >= 2:
         issues.append("promotional content")
     if first_person < 0.02:
@@ -243,7 +243,7 @@ def generate_enhanced_report(drafts, output_path):
         f.write(f"  - Missing 'I built', 'I learned', 'Here's what happened' narrative\n\n")
 
         f.write(f"- **Setup Guides**: {setup_guides}/{total} ({setup_guides/total*100:.0f}%)\n")
-        f.write(f"  - Tutorials/how-to content (better suited for Consultdex)\n\n")
+        f.write(f"  - Tutorials/how-to content (wrong audience/site)\n\n")
 
         f.write(f"- **Promotional Content**: {promotional}/{total} ({promotional/total*100:.0f}%)\n")
         f.write(f"  - Announcements/launches without retrospective analysis\n\n")
@@ -347,7 +347,7 @@ def main():
         if lacks_retro:
             print(f"  • {lacks_retro} drafts lack retrospective narrative")
         if setup_guides:
-            print(f"  • {setup_guides} drafts are setup guides (consider Consultdex)")
+            print(f"  • {setup_guides} drafts are setup guides (wrong audience)")
 
 if __name__ == '__main__':
     main()
