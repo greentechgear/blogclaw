@@ -65,8 +65,12 @@ Five automated scheduled tasks run the learning loops:
 
 **Bi-Weekly Unpublished Draft Analysis (1st and 15th at 9 AM):**
 - Analyzes drafts older than 7 days that haven't been published
-- Identifies common structural patterns in rejected drafts (lacking data, weak structure, style violations)
-- Learning from what you chose NOT to publish is as valuable as learning from edits
+- **Goes beyond word count** to detect topic and content patterns
+- Identifies future speculation vs retrospective analysis
+- Detects missing personal narrative (first-person density)
+- Flags setup guides that belong on different sites
+- Finds duplicate topics to avoid redundant drafting
+- **Key insight detected:** "Brian publishes retrospective analysis of things he's done, rejects prospective speculation about things that might happen"
 - Updates UNPUBLISHED_DRAFTS_ANALYSIS.md with findings and recommendations
 
 **Monthly Lexical Analysis (1st at 10 AM):**
