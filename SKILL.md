@@ -169,9 +169,11 @@ BlogClaw can analyze drafts you haven't published to identify patterns in what y
 
 ### Analyze Unpublished Drafts (Basic - Bi-weekly)
 ```bash
-python3 scripts/analyze_unpublished.py --age-threshold 7
+python3 scripts/analyze_unpublished.py --age-threshold 3
 python3 scripts/analyze_unpublished.py --drafts-dir /path/to/drafts --learning-dir /path/to/learning
 ```
+
+**CRITICAL:** 3 days, not 7. If a draft sits unpublished for 3+ days, the author has rejected it. This is a key learning signal.
 
 ### What It Detects
 1. **Content issues** - Lacking data, personal voice, specific examples
@@ -182,7 +184,7 @@ python3 scripts/analyze_unpublished.py --drafts-dir /path/to/drafts --learning-d
 
 ### Lexical Analysis (Monthly - Word Frequency)
 ```bash
-python3 scripts/analyze_unpublished_lexical.py --age-threshold 7
+python3 scripts/analyze_unpublished_lexical.py --age-threshold 3
 ```
 
 Compares word frequency between unpublished drafts and published articles:
@@ -232,7 +234,7 @@ BlogClaw generates these learning files in the `learning/` directory:
 - **SKILL_IMPROVEMENTS.md** - Script enhancements and fixes
 - **CONTENT_LEARNINGS.md** - Site-specific voice patterns
 - **TRAFFIC_ANALYSIS.md** - Referral traffic patterns and engagement recommendations
-- **UNPUBLISHED_DRAFTS_ANALYSIS.md** - Patterns in drafts not published after 7+ days (bi-weekly)
+- **UNPUBLISHED_DRAFTS_ANALYSIS.md** - Patterns in drafts not published after 3+ days (bi-weekly)
 - **UNPUBLISHED_LEXICAL_ANALYSIS.md** - Word frequency comparison of unpublished vs published (monthly)
 
 ## Version
