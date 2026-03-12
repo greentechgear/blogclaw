@@ -11,8 +11,9 @@ import argparse
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
-# Add parent directory to path to import analyze_revisions
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add scripts directory first (local copy), then repo root as fallback
+sys.path.insert(0, str(Path(__file__).parent))  # blogclaw/scripts/
+sys.path.insert(0, str(Path(__file__).parent.parent))  # blogclaw/ root (GitHub clone layout)
 from analyze_revisions import (
     load_env,
     analyze_post_revisions,
@@ -94,7 +95,7 @@ def update_daily_log(site_name, posts, analyses, log_path):
                 if analysis.get('patterns'):
                     entry_lines.append(f"  - Patterns detected: {len(analysis['patterns'])}\n")
 
-    entry_lines.append(f"\n### Brian's Manual Edits\n\n")
+    entry_lines.append(f"\n### Manual Edits\n\n")
 
     if analyses:
         for analysis in analyses:

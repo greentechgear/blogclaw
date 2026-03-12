@@ -200,7 +200,7 @@ Compares word frequency between unpublished drafts and published articles:
 ```python
 # Bi-weekly (1st and 15th at 9 AM) - Basic structural analysis
 schedule_task(
-    prompt="Run BlogClaw unpublished draft analysis to identify patterns in drafts Brian chose not to publish",
+    prompt="Run BlogClaw unpublished draft analysis to identify patterns in drafts the author chose not to publish",
     schedule_type="cron",
     schedule_value="0 9 1,15 * *",
     context_mode="group"
@@ -239,6 +239,7 @@ BlogClaw generates these learning files in the `learning/` directory:
 
 ## Version
 
+0.8.0 - WordPress draft/pending post tracking, lexical analyzer fixed, heartbeat import fixed, age threshold corrected to 3 days
 0.6.0 - Unpublished draft analysis, learning from rejection patterns
 0.5.0 - Clicky analytics integration, referral traffic analysis, engagement recommendations
 0.3.0 - Content diff analyzer, placeholder detection, semantic pattern matching

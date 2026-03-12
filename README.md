@@ -70,7 +70,7 @@ Five automated scheduled tasks run the learning loops:
 - Detects missing personal narrative (first-person density)
 - Flags setup guides that might belong on different sites
 - Finds duplicate topics to avoid redundant drafting
-- **Key insight detected:** "Brian publishes retrospective analysis of things he's done, rejects prospective speculation about things that might happen"
+- **Key insight detected:** "The author publishes retrospective analysis of things they've done, rejects prospective speculation about things that might happen"
 - Updates UNPUBLISHED_DRAFTS_ANALYSIS.md with findings and recommendations
 
 **Monthly Lexical Analysis (1st at 10 AM):**
@@ -497,6 +497,22 @@ After one week of data:
 3. **The learning loop compounds.** Each improvement makes the next draft better, which generates better data, which enables better improvements.
 
 4. **The creepy threshold is real.** When AI gets too good at mimicking you, it raises identity questions nobody's equipped to answer.
+
+## What's New in v0.8.0
+
+**WordPress Draft Tracking:** `analyze_unpublished.py` now queries the WordPress REST API directly for posts in `draft` and `pending` status. Previously, rejection learning was limited to local markdown files — now every post saved as a WordPress draft but never published is captured as a rejection signal automatically.
+
+**Lexical Analyzer Fixed:** `analyze_unpublished_lexical.py`'s `load_published_content()` was a dead stub returning `[]`, making every lexical comparison meaningless. Replaced with a real WordPress API fetch that pages through all published posts and extracts their text for comparison against the unpublished corpus.
+
+**Age Threshold Corrected:** Both unpublished analyzers now default to 3 days (not 7). A draft that sits untouched for 3+ days is a rejection; 7 days is too slow to be useful.
+
+**Heartbeat Import Fixed:** `heartbeat_daily.py` was silently failing with `ImportError` because `analyze_revisions.py` lives in `scripts/` but the import path pointed to the repo root. Fixed with dual-path resolution that works in both layouts.
+
+## What's New in v0.6.0
+
+**Unpublished Draft Analysis:** `analyze_unpublished.py` and `analyze_unpublished_v2.py` analyze drafts you haven't published to identify patterns in what you choose NOT to ship. Learning from rejection is as valuable as learning from edits.
+
+**Lexical Analysis:** Monthly word frequency comparison between unpublished drafts and published articles. Identifies "rejection markers" (words that correlate with content you don't publish) and "success markers" (words that correlate with content you do). Requires 5,000+ words for statistical significance — run monthly.
 
 ## What's New in v0.5.0
 

@@ -256,8 +256,8 @@ def generate_enhanced_report(drafts, output_path):
 
         # Key insight
         f.write("## Key Insight\n\n")
-        f.write("**Published Pattern:** Brian publishes retrospective analysis of things he's actually done\n\n")
-        f.write("**Rejected Pattern:** Brian rejects prospective speculation about things that might happen\n\n")
+        f.write("**Published Pattern:** The author publishes retrospective analysis of things they've actually done\n\n")
+        f.write("**Rejected Pattern:** The author rejects prospective speculation about things that might happen\n\n")
         f.write("- ✅ Published = 'Here's what I learned from doing X'\n")
         f.write("- ❌ Rejected = 'Here's what X could mean for the future'\n\n")
 
@@ -295,7 +295,7 @@ def generate_enhanced_report(drafts, output_path):
         f.write("- Is there already a similar draft unpublished?\n\n")
 
         f.write("✅ **DO DRAFT:**\n")
-        f.write("- Is this analyzing something Brian actually built/did?\n")
+        f.write("- Is this analyzing something you actually built/did?\n")
         f.write("- Does it have specific examples from his experience?\n")
         f.write("- Does it challenge conventional wisdom with data?\n")
         f.write("- Is there a unique angle/parallel (like WoW → AI)?\n\n")

@@ -60,14 +60,66 @@ def clean_text_for_analysis(text):
     return words
 
 def load_published_content(learning_dir):
-    """Load content from published articles"""
-    # This would ideally fetch from WordPress API
-    # For now, we'll use a simpler approach: check DAILY_ACTIVITY_LOG
-    # for published post titles and fetch from WordPress if needed
+    """Fetch content of published posts from WordPress API.
 
-    # Placeholder: return empty for now
-    # TODO: Implement WordPress API fetch for published content
-    return []
+    Loads WordPress credentials from the blogclaw .env file and queries
+    wp/v2/posts (status=publish) to collect actual post body text.
+    Falls back gracefully if credentials are not available.
+    """
+    import requests
+    from requests.auth import HTTPBasicAuth
+
+    # Load credentials
+    env_path = Path(__file__).parent.parent / '.env'
+    if not env_path.exists():
+        env_path = Path('/workspace/group/.env')
+
+    creds = {}
+    if env_path.exists():
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, _, value = line.partition('=')
+                    creds[key.strip()] = value.strip()
+
+    wp_url = creds.get('WORDPRESS_URL', os.environ.get('WORDPRESS_URL', ''))
+    username = creds.get('WORDPRESS_USERNAME', os.environ.get('WORDPRESS_USERNAME', ''))
+    password = creds.get('WORDPRESS_PASSWORD', os.environ.get('WORDPRESS_PASSWORD', ''))
+
+    if not all([wp_url, username, password]):
+        print("  ⚠ WordPress credentials not found — published corpus will be empty.", file=sys.stderr)
+        return []
+
+    wp_url = wp_url.rstrip('/')
+    auth = HTTPBasicAuth(username, password)
+    published_texts = []
+
+    try:
+        page = 1
+        while True:
+            url = f"{wp_url}/wp-json/wp/v2/posts?status=publish&per_page=100&page={page}&_fields=id,content"
+            resp = requests.get(url, auth=auth, timeout=30)
+            if resp.status_code == 400:
+                break  # No more pages
+            resp.raise_for_status()
+            posts = resp.json()
+            if not posts:
+                break
+            for post in posts:
+                # content.rendered contains HTML — strip tags for text analysis
+                html = post.get('content', {}).get('rendered', '')
+                text = re.sub(r'<[^>]+>', ' ', html)  # strip HTML tags
+                text = re.sub(r'&[a-z]+;', ' ', text)  # strip HTML entities
+                published_texts.append(text)
+            if len(posts) < 100:
+                break
+            page += 1
+        print(f"  ✓ Fetched {len(published_texts)} published posts from WordPress")
+    except Exception as e:
+        print(f"  ⚠ Could not fetch published posts: {e}", file=sys.stderr)
+
+    return published_texts
 
 def analyze_word_frequency(drafts_dir, published_content, age_threshold=7):
     """Compare word frequency between unpublished drafts and published content"""
@@ -214,7 +266,7 @@ def generate_lexical_report(analysis, learning_dir):
             ratio_str = f"{marker['ratio']:.1f}x" if marker['ratio'] != float('inf') else "∞"
             f.write(f"| {marker['word']} | {marker['unpublished_freq']:.2f} | {marker['published_freq']:.2f} | {ratio_str} |\n")
 
-        f.write("\n**Interpretation:** These words correlate with drafts Brian chose NOT to publish.\n\n")
+        f.write("\n**Interpretation:** These words correlate with drafts the author chose NOT to publish.\n\n")
 
         f.write("## Words That Signal Success\n\n")
         f.write("Words that appear significantly more often in PUBLISHED articles:\n\n")
@@ -225,7 +277,7 @@ def generate_lexical_report(analysis, learning_dir):
             ratio_str = f"{marker['ratio']:.1f}x" if marker['ratio'] != float('inf') else "∞"
             f.write(f"| {marker['word']} | {marker['published_freq']:.2f} | {marker['unpublished_freq']:.2f} | {ratio_str} |\n")
 
-        f.write("\n**Interpretation:** These words correlate with content Brian chose to publish.\n\n")
+        f.write("\n**Interpretation:** These words correlate with content the author chose to publish.\n\n")
 
         f.write("## Recommendations\n\n")
 
@@ -256,8 +308,8 @@ def main():
                        help='Path to drafts directory')
     parser.add_argument('--learning-dir', default='/workspace/group/blogging',
                        help='Path to learning directory')
-    parser.add_argument('--age-threshold', type=int, default=7,
-                       help='Minimum age in days to consider draft unpublished (default: 7)')
+    parser.add_argument('--age-threshold', type=int, default=3,
+                       help='Minimum age in days to consider draft unpublished (default: 3 — per SKILL.md)')
     parser.add_argument('--json', action='store_true',
                        help='Output JSON instead of generating report')
 

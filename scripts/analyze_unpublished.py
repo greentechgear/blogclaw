@@ -3,7 +3,7 @@
 BlogClaw - Unpublished Draft Analyzer
 
 Analyzes drafts that haven't been published after a certain age threshold.
-Identifies patterns in what Brian chooses NOT to publish to inform future drafts.
+Identifies patterns in what the author chooses NOT to publish to inform future drafts.
 
 Learning from rejection is as valuable as learning from edits.
 """
@@ -12,8 +12,114 @@ import os
 import sys
 import json
 import argparse
+import re
+import requests
+from requests.auth import HTTPBasicAuth
 from datetime import datetime, timedelta
 from pathlib import Path
+
+
+def load_wp_credentials(env_path=None):
+    """Load WordPress credentials from .env file"""
+    creds = {}
+    paths_to_try = [
+        env_path,
+        Path(__file__).parent.parent / '.env',
+        Path('/workspace/group/.env'),
+    ]
+    for p in paths_to_try:
+        if p and Path(p).exists():
+            with open(p) as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, _, value = line.partition('=')
+                        creds[key.strip()] = value.strip()
+            break
+    return creds
+
+
+def fetch_wordpress_drafts(age_threshold=3):
+    """Fetch posts in draft/pending status from WordPress that are older than threshold days.
+
+    These represent content the author chose NOT to publish — the most direct
+    rejection signal we have.
+    """
+    creds = load_wp_credentials()
+    wp_url = creds.get('WORDPRESS_URL', os.environ.get('WORDPRESS_URL', ''))
+    username = creds.get('WORDPRESS_USERNAME', os.environ.get('WORDPRESS_USERNAME', ''))
+    password = creds.get('WORDPRESS_PASSWORD', os.environ.get('WORDPRESS_PASSWORD', ''))
+
+    if not all([wp_url, username, password]):
+        print("  ⚠ WordPress credentials not found — skipping WordPress draft fetch.", file=sys.stderr)
+        return []
+
+    wp_url = wp_url.rstrip('/')
+    auth = HTTPBasicAuth(username, password)
+    cutoff = datetime.now() - timedelta(days=age_threshold)
+    drafts = []
+
+    for status in ('draft', 'pending'):
+        try:
+            page = 1
+            while True:
+                url = (f"{wp_url}/wp-json/wp/v2/posts"
+                       f"?status={status}&per_page=100&page={page}"
+                       f"&_fields=id,title,date_gmt,modified_gmt,content,excerpt")
+                resp = requests.get(url, auth=auth, timeout=30)
+                if resp.status_code in (400, 404):
+                    break
+                resp.raise_for_status()
+                posts = resp.json()
+                if not posts:
+                    break
+
+                for post in posts:
+                    # Use modified_gmt as the "last touched" date
+                    date_str = post.get('modified_gmt') or post.get('date_gmt', '')
+                    try:
+                        post_dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                        post_dt = post_dt.replace(tzinfo=None)  # naive for comparison
+                    except Exception:
+                        continue
+
+                    if post_dt > cutoff:
+                        continue  # Too recent — not a rejection yet
+
+                    age_days = (datetime.now() - post_dt).days
+                    title = post.get('title', {}).get('rendered', f"Post {post['id']}")
+                    # Strip HTML from content
+                    html = post.get('content', {}).get('rendered', '')
+                    body = re.sub(r'<[^>]+>', ' ', html)
+                    body = re.sub(r'&[a-z]+;', ' ', body)
+                    word_count = len(body.split())
+                    em_dashes = body.count('—') + body.count('&mdash;')
+                    has_data = any(c.isdigit() for c in body[:1000])
+                    has_personal = any(p in body.lower() for p in ['i ', 'my ', "i've", "i'm"])
+
+                    drafts.append({
+                        'source': 'wordpress',
+                        'wordpress_id': post['id'],
+                        'wordpress_status': status,
+                        'filename': f"wp-{status}-{post['id']}",
+                        'title': title,
+                        'age_days': age_days,
+                        'created_date': post_dt.strftime('%Y-%m-%d'),
+                        'word_count': word_count,
+                        'h2_sections': body.count('\n## ') + body.count('<h2'),
+                        'has_data_driven_content': has_data,
+                        'has_personal_voice': has_personal,
+                        'em_dash_violations': em_dashes,
+                        'category': 'WordPress Draft',
+                    })
+
+                if len(posts) < 100:
+                    break
+                page += 1
+        except Exception as e:
+            print(f"  ⚠ Could not fetch WordPress {status} posts: {e}", file=sys.stderr)
+
+    return drafts
 
 def get_draft_age(draft_path):
     """Get age of draft in days based on file modification time"""
@@ -100,30 +206,47 @@ def load_published_titles(learning_dir):
 
     return published
 
-def analyze_unpublished_drafts(drafts_dir, learning_dir, age_threshold=7):
-    """Find and analyze drafts older than threshold that haven't been published"""
-    drafts_path = Path(drafts_dir)
+def analyze_unpublished_drafts(drafts_dir, learning_dir, age_threshold=3):
+    """Find and analyze drafts older than threshold that haven't been published.
 
-    if not drafts_path.exists():
-        print(f"Error: Drafts directory not found: {drafts_dir}")
-        return []
-
-    published_titles = load_published_titles(learning_dir)
+    Sources:
+    1. Local markdown files in drafts_dir (NanoClaw-created drafts)
+    2. WordPress posts in draft/pending status (direct WordPress drafts)
+    """
     unpublished = []
+    published_titles = load_published_titles(learning_dir)
 
-    for draft_file in drafts_path.glob('*.md'):
-        if draft_file.name == 'TEMPLATE.md':
-            continue
+    # --- Source 1: Local markdown files ---
+    drafts_path = Path(drafts_dir)
+    if drafts_path.exists():
+        for draft_file in drafts_path.glob('*.md'):
+            if draft_file.name == 'TEMPLATE.md':
+                continue
 
-        age_days, _ = get_draft_age(draft_file)
+            age_days, _ = get_draft_age(draft_file)
 
-        # Only analyze drafts older than threshold
-        if age_days >= age_threshold:
-            analysis = analyze_draft(draft_file)
+            if age_days >= age_threshold:
+                analysis = analyze_draft(draft_file)
+                analysis['source'] = 'local'
 
-            # Check if title appears in published list
-            if analysis['title'] not in published_titles:
-                unpublished.append(analysis)
+                # Check if title appears in published list
+                if analysis['title'] not in published_titles:
+                    unpublished.append(analysis)
+    else:
+        print(f"  ⚠ Local drafts directory not found: {drafts_dir}")
+
+    # --- Source 2: WordPress draft/pending posts ---
+    print(f"\nFetching WordPress draft/pending posts (older than {age_threshold} days)...")
+    wp_drafts = fetch_wordpress_drafts(age_threshold=age_threshold)
+    if wp_drafts:
+        print(f"  Found {len(wp_drafts)} WordPress draft/pending post(s)")
+        # Deduplicate: skip WP drafts whose title already appears in local drafts
+        local_titles = {d['title'].lower().strip() for d in unpublished}
+        for wp in wp_drafts:
+            if wp['title'].lower().strip() not in local_titles:
+                unpublished.append(wp)
+    else:
+        print("  No WordPress draft/pending posts found (or credentials unavailable)")
 
     return unpublished
 
@@ -146,21 +269,26 @@ def identify_patterns(unpublished_drafts):
 
     return patterns
 
-def generate_report(unpublished_drafts, patterns, learning_dir):
+def generate_report(unpublished_drafts, patterns, learning_dir, age_threshold=3):
     """Generate markdown report of unpublished draft analysis"""
     report_path = Path(learning_dir) / 'UNPUBLISHED_DRAFTS_ANALYSIS.md'
 
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write(f"# Unpublished Drafts Analysis\n\n")
         f.write(f"*Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}*\n\n")
-        f.write(f"**Total unpublished drafts (7+ days old):** {len(unpublished_drafts)}\n\n")
+        local_count = sum(1 for d in unpublished_drafts if d.get('source') == 'local')
+        wp_count = sum(1 for d in unpublished_drafts if d.get('source') == 'wordpress')
+        f.write(f"**Total unpublished drafts ({age_threshold}+ days old):** {len(unpublished_drafts)}\n\n")
+        if local_count or wp_count:
+            f.write(f"- Local markdown drafts: {local_count}\n")
+            f.write(f"- WordPress draft/pending posts: {wp_count}\n\n")
 
         if not unpublished_drafts:
             f.write("No unpublished drafts found older than 7 days.\n")
             return report_path
 
         f.write("## Pattern Analysis\n\n")
-        f.write("Common characteristics of drafts Brian chose NOT to publish:\n\n")
+        f.write("Common characteristics of drafts the author chose NOT to publish:\n\n")
 
         total = len(unpublished_drafts)
         f.write(f"- **Lacking data-driven content**: {patterns['lacking_data']}/{total} ({patterns['lacking_data']/total*100:.0f}%)\n")
@@ -206,19 +334,19 @@ def generate_report(unpublished_drafts, patterns, learning_dir):
         f.write("## Recommendations\n\n")
 
         if patterns['lacking_data'] / total > 0.5:
-            f.write("- **Add specific data**: Over 50% of unpublished drafts lack data-driven content. Brian's voice requires concrete numbers and examples.\n")
+            f.write("- **Add specific data**: Over 50% of unpublished drafts lack data-driven content. Your voice requires concrete numbers and examples.\n")
 
         if patterns['lacking_personal_voice'] / total > 0.5:
-            f.write("- **Increase personal voice**: Over 50% lack first-person perspective. Brian's readers expect personal anecdotes and industry experience.\n")
+            f.write("- **Increase personal voice**: Over 50% lack first-person perspective. Your readers expect personal anecdotes and industry experience.\n")
 
         if patterns['em_dash_violations'] / total > 0.3:
-            f.write("- **Check style guide compliance**: Significant number have em-dash violations (Brian's style guide forbids them).\n")
+            f.write("- **Check style guide compliance**: Significant number have em-dash violations (your style guide forbids them).\n")
 
         if patterns['weak_structure'] / total > 0.5:
-            f.write("- **Improve structure**: Over 50% have fewer than 3 H2 sections. Brian's articles need clear hierarchical organization.\n")
+            f.write("- **Improve structure**: Over 50% have fewer than 3 H2 sections. Your articles need clear hierarchical organization.\n")
 
         if patterns['avg_word_count'] < 1200:
-            f.write(f"- **Increase depth**: Average word count is {patterns['avg_word_count']:.0f}. Brian's published articles typically exceed 1,500 words.\n")
+            f.write(f"- **Increase depth**: Average word count is {patterns['avg_word_count']:.0f}. Your published articles typically exceed 1,500 words.\n")
 
     return report_path
 
@@ -228,8 +356,8 @@ def main():
                        help='Path to drafts directory')
     parser.add_argument('--learning-dir', default='/workspace/group/blogging',
                        help='Path to learning directory')
-    parser.add_argument('--age-threshold', type=int, default=7,
-                       help='Minimum age in days to consider draft unpublished (default: 7)')
+    parser.add_argument('--age-threshold', type=int, default=3,
+                       help='Minimum age in days to consider draft unpublished (default: 3 — per SKILL.md)')
     parser.add_argument('--json', action='store_true',
                        help='Output JSON instead of generating report')
 
@@ -249,7 +377,7 @@ def main():
         return
 
     patterns = identify_patterns(unpublished)
-    report_path = generate_report(unpublished, patterns, args.learning_dir)
+    report_path = generate_report(unpublished, patterns, args.learning_dir, age_threshold=args.age_threshold)
 
     print(f"\n✓ Analysis complete")
     print(f"  Unpublished drafts: {len(unpublished)}")
